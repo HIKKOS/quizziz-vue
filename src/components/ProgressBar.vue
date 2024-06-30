@@ -1,35 +1,14 @@
 <template>
-  <div
-    class="rounded-lg h-3 progress-bar bg-[#34d399] duration-1000 ease-linear"
-    :style="{ backgroundColor: red, height: 10, width: props.value + '%' }"
-  >
-    <p>{{ props.value }}</p>
+  <div :class="divClass" :style="{ width: props.value + '%' }">
+    <p v-if="showValue" class="font-bold text-center text-lg">{{ value }}%</p>
   </div>
 </template>
 
 <script setup>
-const props = defineProps(['value'])
-/* import { ref, onMounted, onUnmounted } from 'vue'
+const props = defineProps(['value', 'needTransition', 'showValue'])
 
-const props = defineProps(['time'])
-const totalTime = props.time
-const timeLeft = ref(totalTime)
-const progress = ref(100)
-
-let interval
-
-onMounted(() => {
-  interval = setInterval(() => {
-    if (timeLeft.value > 0) {
-      timeLeft.value -= 1
-      progress.value = (timeLeft.value / totalTime) * 100
-    } else {
-      clearInterval(interval)
-    }
-  }, 1000)
-})
-
-onUnmounted(() => {
-  clearInterval(interval)
-}) */
+const needTransition = props.needTransition
+const showValue = props.showValue && props.value
+let divClass = 'flex flex-row items-center justify-center rounded-lg h-10  bg-[#34d399]  '
+if (needTransition) divClass += ' ease-linear duration-1000 '
 </script>
