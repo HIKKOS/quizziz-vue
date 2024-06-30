@@ -49,6 +49,7 @@ const start = () => {
       timeLeft.value -= 1
       progress.value = (timeLeft.value / totalTime) * 100
     } else {
+      checkAnswer(-1)
       nextQuestion()
     }
   }
@@ -85,10 +86,15 @@ const colorCorrectButton = (button) => {
   i.classList.add('pi')
   i.classList.add('pi-check')
   button.appendChild(i)
+  return button
 }
 const checkAnswer = (answerIndex) => {
   const buttons = document.querySelectorAll('.answer')
   const correctAnswerIndex = questions.value[actualQuestion.value].answer
+  if (answerIndex === -1) {
+    answerStatus.value = answerStatusEnum.UNANSWERED
+    return nextQuestion()
+  }
   if (answerIndex !== correctAnswerIndex) {
     const button = buttons[answerIndex]
     button.classList.add('bg-red-600')
@@ -98,6 +104,7 @@ const checkAnswer = (answerIndex) => {
     button.appendChild(i)
     answerStatus.value = answerStatusEnum.INCORRECT
   }
+
   colorCorrectButton(buttons[correctAnswerIndex])
   answerStatus.value = answerStatusEnum.CORRECT
 
@@ -111,12 +118,13 @@ const checkAnswer = (answerIndex) => {
     buttons.forEach((button) => {
       button.classList.remove('bg-emerald-500')
       button.classList.remove('bg-red-600')
-      button.classList.add('bg-gray-700')
+
       button.innerHTML = button.innerHTML.split('<i')[0]
     })
   }, 1000)
   return correct
 }
+
 const resultMessage = computed(() => {
   if (correctAnswers.value >= 8) {
     return 'Felicidades! 🎉, conseguiste ' + correctAnswers.value + 'de 10 respuestas correctas'
@@ -137,8 +145,15 @@ const resultMessage = computed(() => {
     <Skeleton v-if="!questions" width="10rem" height="4rem" borderRadius="16px"></Skeleton>
     <Card v-else-if="!testFinished" class="w-1/3">
       <template #title>
-        <h2>Pregunta {{ actualQuestion + 1 }} de {{ questions.length }}</h2>
-        <div class="w-full flex flex-row justify-between items-center">
+        <div class="flex flex-row justify-between">
+          <h2 class="text-4xl font-bold">
+            Pregunta {{ actualQuestion + 1 }} de {{ questions.length }}
+          </h2>
+          <p class="py-2 font-semibold flex flex-row justify-center w-1/4 rounded-md bg-gray-700">
+            {{ timeLeft }} {{ timeLeft > 1 ? 'segundos' : 'segundo' }}
+          </p>
+        </div>
+        <div class="my-10 w-full flex flex-row justify-between items-center">
           <ProgressBar :needTransition="true" :value="progress" />
         </div>
         {{ questions[actualQuestion].question }}
@@ -152,7 +167,7 @@ const resultMessage = computed(() => {
             :key="index"
           >
             <div
-              class="hover:border-white border border-gray-500 flex flex-row items-center p-3 rounded-md w-full answer bg-gray-700 justify-between"
+              class="hover:border-white border border-gray-500 flex flex-row items-center p-3 rounded-md w-full answer justify-between"
             >
               <p class="p-1 text-start w-full font-bold">{{ index + 1 }} .- {{ options }}</p>
             </div>
