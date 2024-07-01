@@ -9,19 +9,16 @@ onMounted(() => {
   getData()
 })
 let questions = ref(null)
-const data = ref(null)
+
 const getData = async () => {
   const port = '7169'
   const server = `localhost:${port}`
   const url = `https://${server}/api/Quizz/questions`
   const response = await axios.get(url)
   console.log(response)
-  data.value = response.data.resultado
-  questions.value = data.value
+  questions.value = response.data.resultado
   console.log({
-    actualQuestion: actualQuestion.value,
-    questionsL: questions.value.length,
-    questions: questions.value
+    questions: questions.value[1].options
   })
 }
 const answerStatusEnum = {
@@ -30,7 +27,6 @@ const answerStatusEnum = {
   UNANSWERED: 'unanswered'
 }
 const actualQuestion = ref(0)
-
 const correctAnswers = ref(0)
 const totalTime = 15
 const timeLeft = ref(totalTime)
@@ -41,7 +37,10 @@ const correctPercentage = computed(() => {
   return value.toFixed(0)
 })
 const answerStatus = ref(answerStatusEnum.UNANSWERED)
-
+const actualOptions = computed(() => {
+  const options = questions.value[actualQuestion.value].options
+  return options
+})
 let interval
 const start = () => {
   const cb = () => {
@@ -57,11 +56,8 @@ const start = () => {
 }
 
 const nextQuestion = () => {
+  console.log(actualOptions.value)
   actualQuestion.value++
-  console.log({
-    actualQuestion: actualQuestion.value,
-    questions: questions.value.length
-  })
   if (!(actualQuestion.value < questions.value.length)) {
     clearInterval(interval)
     return
@@ -113,14 +109,16 @@ const checkAnswer = (answerIndex) => {
     correctAnswers.value++
   }
   answerStatus.value = answerStatusEnum.UNANSWERED
+
   setTimeout(() => {
-    nextQuestion()
     buttons.forEach((button) => {
       button.classList.remove('bg-emerald-500')
       button.classList.remove('bg-red-600')
-
-      button.innerHTML = button.innerHTML.split('<i')[0]
+      if (button.children.length > 1) {
+        button.removeChild(button.children[1])
+      }
     })
+    nextQuestion()
   }, 1000)
   return correct
 }
@@ -161,15 +159,15 @@ const resultMessage = computed(() => {
       <template #content>
         <div class="flex flex-col gap-2">
           <div
+            v-for="(option, index) in actualOptions"
             @click="() => answerStatus == answerStatusEnum.UNANSWERED && checkAnswer(index)"
             class="text-start justify-start w-full :hover:text-white p-2 rounded-md cursor-pointer"
-            v-for="(options, index) in questions[actualQuestion].options"
             :key="index"
           >
             <div
               class="hover:border-white border border-gray-500 flex flex-row items-center p-3 rounded-md w-full answer justify-between"
             >
-              <p class="p-1 text-start w-full font-bold">{{ index + 1 }} .- {{ options }}</p>
+              <p class="p-1 text-start w-full font-bold">{{ index }} .- {{ option }}</p>
             </div>
           </div>
         </div>
